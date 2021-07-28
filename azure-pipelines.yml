@@ -1,0 +1,21 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: AzureResourceManagerTemplateDeployment@3
+  inputs:
+    deploymentScope: 'Resource Group'
+    azureResourceManagerConnection: 'Azure for Students (dee83517-30ce-449f-b158-3af40f6a8747)'
+    subscriptionId: 'dee83517-30ce-449f-b158-3af40f6a8747'
+    action: 'Create Or Update Resource Group'
+    resourceGroupName: 'tcd'
+    location: 'East US'
+    templateLocation: 'Linked artifact'
+    csmFile: '$(System.DefaultWorkingDirectory)/main.json'
+    deploymentMode: 'Incremental'
+
+
