@@ -2,76 +2,83 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "testName": {
+		"sku": {
             "type": "string",
-            "minLength": 1
-        },
-        "testSKU": {
-            "type": "string",
-            "allowedValues": [
-                "Free",
-                "Shared",
-                "Basic",
-                "Standard"
-            ],
             "defaultValue": "Free"
         },
-        "testWorkerSize": {
+        "skuCode": {
             "type": "string",
-            "allowedValues": [
-                "0",
-                "1",
-                "2"
-            ],
+            "defaultValue": "F1"
+        },
+        "workerSize": {
+            "type": "string",
             "defaultValue": "0"
         },
-        "linuxFxVersion": {
+        "workerSizeId": {
             "type": "string",
-            "defaultValue": "PYTHON|3.7",
-            "metadata": {
-                "description": "The Runtime stack of current web app"
-            }
+            "defaultValue": "0"
+        },
+        "numberOfWorkers": {
+            "type": "string",
+            "defaultValue": "1"
+        },
+		"hostingPlanName": {
+            "type": "string",
+            "defaultValue": "myappplan"
+        },
+        "websevicename": {
+            "type": "String",
+            "defaultValue": "myappservice"
+        },
+        "alwaysOn": {
+            "type": "Bool",
+            "defaultValue": True
+        },
+        "linuxFxVersion": {
+            "type": "String",
+            "defaultValue": "PYTHON|3.7"
         }
-    },
-    "variables": {
-        "testName": "[concat('web-app', uniqueString(resourceGroup().id))]"
-    },
+	},
     "resources": [
+		{
+			"apiVersion": "2018-11-01",
+            "name": "[parameters('hostingPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[resourceGroup().location]",
+            "kind": "linux",
+            "tags": {},
+            "dependsOn": [],
+            "properties": {
+                "name": "[parameters('hostingPlanName')]",
+                "workerSize": "[parameters('workerSize')]",
+                "workerSizeId": "[parameters('workerSizeId')]",
+                "numberOfWorkers": "[parameters('numberOfWorkers')]",
+                "reserved": true
+            },
+            "sku": {
+                "Tier": "[parameters('sku')]",
+                "Name": "[parameters('skuCode')]"
+            }
+		},
         {
             "type": "Microsoft.Web/sites",
-            "apiVersion": "2015-08-01",
-            "name": "[variables('testName')]",
+            "apiVersion": "2018-11-01",
+            "name": "[concat ( parameters('websevicename') , uniqueString(resourceGroup().id) )]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Web/serverfarms/', parameters('testName'))]"
+                "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
             ],
-            "tags": {
-                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('testName'))]": "Resource",
-                "displayName": "test"
-            },
+            "tags": {},
             "properties": {
-                "name": "[variables('testName')]",
+                "name": "[concat ( parameters('websevicename') , uniqueString(resourceGroup().id) )]",
                 "siteConfig": {
-                    "linuxFxVersion": "[parameters('linuxFxVersion')]"
+                    "appSettings": [],
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]",
+                    "alwaysOn": "[parameters('alwaysOn')]"
                 },
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', parameters('testName'))]"
-            }
-        },
-        {
-            "type": "Microsoft.Web/serverfarms",
-            "apiVersion": "2014-06-01",
-            "name": "[parameters('testName')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [],
-            "tags": {
-                "displayName": "test"
-            },
-            "properties": {
-                "name": "[parameters('testName')]",
-                "sku": "[parameters('testSKU')]",
-                "workerSize": "[parameters('testWorkerSize')]",
-                "numberOfWorkers": 1
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
+                "clientAffinityEnabled": false
             }
         }
-    ]
+	]
 }
