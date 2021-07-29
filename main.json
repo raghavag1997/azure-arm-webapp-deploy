@@ -32,7 +32,7 @@
         },
         "alwaysOn": {
             "type": "Bool",
-            "defaultValue": True
+            "defaultValue": "False"
         },
         "linuxFxVersion": {
             "type": "String",
